@@ -2,6 +2,9 @@
 
 Integration für die Vereinssoftware [easyVerein](https://easyverein.com). Zeigt Kennzahlen als Sensoren und die Termine als Kalender in Home Assistant an.
 
+[![Repository in HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=SD-Software-Design-GmbH&repository=easyverein-homeassistant&category=integration)
+[![Integration einrichten](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=easyverein)
+
 Die Werte werden alle 30 Minuten über die API (v3.0) abgefragt, Echtzeit ist nicht gedacht.
 
 ## Entitäten
