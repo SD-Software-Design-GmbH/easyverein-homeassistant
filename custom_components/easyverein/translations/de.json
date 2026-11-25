@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "easyVerein verbinden",
-        "description": "Den API-Schlüssel erzeugst du in easyVerein unter [Einstellungen, API](https://easyverein.com/app/settings/easyVereinApi/). Er hat die Rechte des Benutzers, mit dem du ihn erzeugst. Der Benutzer braucht Vorstandsrechte und Leserechte auf die Bereiche, die angezeigt werden sollen: Mitglieder, Adressen, Termine, Buchungen, Aufgaben, Inventar.",
+        "description": "Den API-Schlüssel erzeugst du in easyVerein unter [Einstellungen, API]({api_url}). Er hat die Rechte des Benutzers, mit dem du ihn erzeugst. Der Benutzer braucht Vorstandsrechte und Leserechte auf die Bereiche, die angezeigt werden sollen: Mitglieder, Adressen, Termine, Buchungen, Aufgaben, Inventar.",
         "data": {
           "token": "API-Token"
         }

@@ -4,6 +4,7 @@ from datetime import timedelta
 
 DOMAIN = "easyverein"
 BASE_URL = "https://easyverein.com/api/v3.0/"
+API_KEYS_URL = "https://easyverein.com/app/settings/easyVereinApi/"
 
 CONF_SCAN_INTERVAL = "scan_interval"  # minutes
 CONF_EXCLUDED_FILTERS = "excluded_filters"  # custom filter ids (as str) without sensor

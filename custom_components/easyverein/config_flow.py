@@ -28,6 +28,7 @@ from homeassistant.helpers.selector import (
 
 from .api import EasyVereinAuthError, EasyVereinClient
 from .const import (
+    API_KEYS_URL,
     CONF_EXCLUDED_FILTERS,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
@@ -63,7 +64,10 @@ class EasyVereinConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=SCHEMA,
             errors=errors,
-            description_placeholders={"detail": self._detail},
+            description_placeholders={
+                "detail": self._detail,
+                "api_url": API_KEYS_URL,
+            },
         )
 
     async def async_step_reauth(
@@ -84,7 +88,10 @@ class EasyVereinConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="reauth_confirm",
             data_schema=SCHEMA,
             errors=errors,
-            description_placeholders={"detail": self._detail},
+            description_placeholders={
+                "detail": self._detail,
+                "api_url": API_KEYS_URL,
+            },
         )
 
     async def _validate(self, token: str, errors: dict[str, str]) -> str | None:

@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect easyVerein",
-        "description": "Create the API key in easyVerein under [Settings, API](https://easyverein.com/app/settings/easyVereinApi/). It has the rights of the user you create it with. That user needs chairman rights and read access to the areas you want to show: members, addresses, events, bookings, tasks, inventory.",
+        "description": "Create the API key in easyVerein under [Settings, API]({api_url}). It has the rights of the user you create it with. That user needs chairman rights and read access to the areas you want to show: members, addresses, events, bookings, tasks, inventory.",
         "data": {
           "token": "API token"
         }
