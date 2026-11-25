@@ -2,8 +2,7 @@
 
 Integration für die Vereinssoftware [easyVerein](https://easyverein.com). Zeigt Kennzahlen als Sensoren und die Termine als Kalender in Home Assistant an.
 
-[![Repository in HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=SD-Software-Design-GmbH&repository=easyverein-homeassistant&category=integration)
-[![Integration einrichten](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=easyverein)
+[![Repository in HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=SD-Software-Design-GmbH&repository=easyverein-homeassistant&category=integration) [![Integration einrichten](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=easyverein) [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
 Die Werte werden über die API (v3.0) abgefragt, standardmäßig alle 30 Minuten. Echtzeit ist nicht gedacht.
 
@@ -57,6 +56,6 @@ pytest
 
 Die Tests laufen gegen eine simulierte API.
 
-## Lizenz
+---
 
-Apache License 2.0, siehe [LICENSE](LICENSE).
+[easyVerein](https://easyverein.com) ist ein Produkt der [SD Software-Design GmbH](https://software-design.de) · [Apache-2.0-Lizenz](LICENSE)
