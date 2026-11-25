@@ -1,0 +1,11 @@
+{
+  "domain": "easyverein",
+  "name": "easyVerein",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/SD-Software-Design-GmbH/easyverein-homeassistant",
+  "issue_tracker": "https://github.com/SD-Software-Design-GmbH/easyverein-homeassistant/issues",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "0.1.0"
+}
