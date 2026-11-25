@@ -17,7 +17,8 @@
     },
     "error": {
       "invalid_auth": "Token ungültig oder abgelaufen",
-      "cannot_connect": "easyVerein nicht erreichbar"
+      "cannot_connect": "easyVerein nicht erreichbar ({detail})",
+      "http_error": "easyVerein antwortet mit einem Fehler ({detail})"
     },
     "abort": {
       "single_instance_allowed": "easyVerein ist bereits eingerichtet"

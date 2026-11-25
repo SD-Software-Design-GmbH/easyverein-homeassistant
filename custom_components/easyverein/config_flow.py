@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -14,11 +15,14 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import EasyVereinAuthError, EasyVereinClient
 from .const import DOMAIN
 
+_LOGGER = logging.getLogger(__name__)
+
 SCHEMA = vol.Schema({vol.Required(CONF_TOKEN): str})
 
 
 class EasyVereinConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
+    _detail = ""
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -31,7 +35,12 @@ class EasyVereinConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title="easyVerein", data={CONF_TOKEN: token}
                 )
-        return self.async_show_form(step_id="user", data_schema=SCHEMA, errors=errors)
+        return self.async_show_form(
+            step_id="user",
+            data_schema=SCHEMA,
+            errors=errors,
+            description_placeholders={"detail": self._detail},
+        )
 
     async def async_step_reauth(
         self, entry_data: Mapping[str, Any]
@@ -48,7 +57,10 @@ class EasyVereinConfigFlow(ConfigFlow, domain=DOMAIN):
                     self._get_reauth_entry(), data={CONF_TOKEN: token}
                 )
         return self.async_show_form(
-            step_id="reauth_confirm", data_schema=SCHEMA, errors=errors
+            step_id="reauth_confirm",
+            data_schema=SCHEMA,
+            errors=errors,
+            description_placeholders={"detail": self._detail},
         )
 
     async def _validate(self, token: str, errors: dict[str, str]) -> str | None:
@@ -58,6 +70,12 @@ class EasyVereinConfigFlow(ConfigFlow, domain=DOMAIN):
             return await client.refresh_token()
         except EasyVereinAuthError:
             errors["base"] = "invalid_auth"
-        except aiohttp.ClientError:
+        except aiohttp.ClientResponseError as err:
+            _LOGGER.warning("easyVerein answered with an error: %r", err)
+            self._detail = f"HTTP {err.status}"
+            errors["base"] = "http_error"
+        except aiohttp.ClientError as err:
+            _LOGGER.warning("Cannot reach easyVerein: %r", err)
+            self._detail = type(err).__name__
             errors["base"] = "cannot_connect"
         return None

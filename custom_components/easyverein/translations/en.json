@@ -17,7 +17,8 @@
     },
     "error": {
       "invalid_auth": "Token invalid or expired",
-      "cannot_connect": "Cannot reach easyVerein"
+      "cannot_connect": "Cannot reach easyVerein ({detail})",
+      "http_error": "easyVerein returned an error ({detail})"
     },
     "abort": {
       "single_instance_allowed": "easyVerein is already set up"
