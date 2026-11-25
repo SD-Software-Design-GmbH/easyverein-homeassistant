@@ -9,7 +9,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from . import EasyVereinConfigEntry
+from .coordinator import EasyVereinConfigEntry
+from .entity import device_info
 
 
 async def async_setup_entry(
@@ -22,11 +23,12 @@ async def async_setup_entry(
 
 class EasyVereinCalendar(CalendarEntity):
     _attr_has_entity_name = True
-    _attr_name = "Termine"
+    _attr_translation_key = "events"
 
     def __init__(self, entry: EasyVereinConfigEntry) -> None:
         self._client = entry.runtime_data.client
         self._attr_unique_id = f"{entry.entry_id}_calendar"
+        self._attr_device_info = device_info(entry)
 
     # shortcut: no "next event" state (always off); add via a cached upcoming-events fetch if wanted
     @property
@@ -37,14 +39,17 @@ class EasyVereinCalendar(CalendarEntity):
         self, hass: HomeAssistant, start_date: datetime, end_date: datetime
     ) -> list[CalendarEvent]:
         return [
-            _to_calendar_event(e) for e in await self._client.events(start_date, end_date)
+            _to_calendar_event(e)
+            for e in await self._client.events(start_date, end_date)
         ]
 
 
 def _to_calendar_event(item: dict) -> CalendarEvent:
     start = dt_util.parse_datetime(item["start"])
     end = dt_util.parse_datetime(item["end"])
-    if item.get("all_day"):
+    if not item.get("all_day"):
+        start, end = dt_util.as_local(start), dt_util.as_local(end)
+    else:
         # HA wants dates for all-day events; easyVerein's end is the last day, HA's is exclusive.
         start, end = start.date(), end.date() + timedelta(days=1)
     return CalendarEvent(

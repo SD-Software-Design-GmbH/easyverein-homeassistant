@@ -60,9 +60,7 @@ class ClientTest(unittest.TestCase):
         c = api.EasyVereinClient(s, "tok")
         self.assertEqual(run(c.count("member", custom_filter=7)), 42)
         _, params, headers = s.calls[0]
-        self.assertEqual(
-            params, {"custom_filter": 7, "limit": 1, "show_count": "true"}
-        )
+        self.assertEqual(params, {"custom_filter": 7, "limit": 1, "show_count": "true"})
         self.assertEqual(headers["Authorization"], "Bearer tok")
 
     def test_auth_error(self):
@@ -97,7 +95,9 @@ class ClientTest(unittest.TestCase):
                     200,
                     {
                         "next": None,
-                        "results": [{"id": 3, "name": "Offen", "model": "invoiceFilter"}],
+                        "results": [
+                            {"id": 3, "name": "Offen", "model": "invoiceFilter"}
+                        ],
                     },
                 ),
             }

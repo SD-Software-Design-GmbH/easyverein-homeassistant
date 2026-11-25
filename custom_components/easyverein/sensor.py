@@ -7,7 +7,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import EasyVereinConfigEntry, EasyVereinCoordinator
+from .coordinator import EasyVereinConfigEntry, EasyVereinCoordinator
+from .entity import device_info
 
 
 async def async_setup_entry(
@@ -28,9 +29,13 @@ class _CountSensor(CoordinatorEntity[EasyVereinCoordinator], SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:counter"
 
+    def __init__(self, coordinator: EasyVereinCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_device_info = device_info(coordinator.config_entry)
+
 
 class MembersSensor(_CountSensor):
-    _attr_name = "Mitglieder"
+    _attr_translation_key = "members"
     _attr_icon = "mdi:account-group"
 
     def __init__(self, coordinator: EasyVereinCoordinator) -> None:

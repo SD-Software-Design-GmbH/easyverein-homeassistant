@@ -23,5 +23,17 @@
     "abort": {
       "single_instance_allowed": "easyVerein ist bereits eingerichtet"
     }
+  },
+  "entity": {
+    "sensor": {
+      "members": {
+        "name": "Mitglieder"
+      }
+    },
+    "calendar": {
+      "events": {
+        "name": "Termine"
+      }
+    }
   }
 }

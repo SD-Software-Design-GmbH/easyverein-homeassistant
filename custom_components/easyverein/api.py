@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 from typing import Any
 
 from .const import BASE_URL, MODEL_ENDPOINTS
 
 PAGE_LIMIT = 100  # API maximum
+TIMEOUT = 30  # seconds per request
 
 
 class EasyVereinAuthError(Exception):
@@ -24,11 +26,14 @@ class EasyVereinClient:
         self.token = token
 
     async def _get(self, path: str, params: dict[str, Any] | None = None) -> Any:
-        async with self._session.get(
-            path if path.startswith("http") else BASE_URL + path,
-            params=params,
-            headers={"Authorization": f"Bearer {self.token}"},
-        ) as resp:
+        async with (
+            asyncio.timeout(TIMEOUT),
+            self._session.get(
+                path if path.startswith("http") else BASE_URL + path,
+                params=params,
+                headers={"Authorization": f"Bearer {self.token}"},
+            ) as resp,
+        ):
             if resp.status == 401:
                 raise EasyVereinAuthError
             if resp.status == 403:
@@ -40,16 +45,16 @@ class EasyVereinClient:
         """Ask for a fresh token. Returns the same one while the current is young enough."""
         try:
             data = await self._get("refresh-token")
-        except EasyVereinForbidden as err:  # the server answers 403 for expired tokens here
+        except (
+            EasyVereinForbidden
+        ) as err:  # the server answers 403 for expired tokens here
             raise EasyVereinAuthError from err
         self.token = data["Bearer"]
         return self.token
 
     async def count(self, endpoint: str, **params: Any) -> int:
         """Number of entries of `endpoint` matching `params`, via one tiny request."""
-        data = await self._get(
-            endpoint, {**params, "limit": 1, "show_count": "true"}
-        )
+        data = await self._get(endpoint, {**params, "limit": 1, "show_count": "true"})
         return data["count"]
 
     async def custom_filters(self) -> list[dict[str, Any]]:
@@ -61,9 +66,7 @@ class EasyVereinClient:
         ]
         return filters
 
-    async def events(
-        self, start: datetime, end: datetime
-    ) -> list[dict[str, Any]]:
+    async def events(self, start: datetime, end: datetime) -> list[dict[str, Any]]:
         """Events overlapping [start, end]."""
         params = {
             "start__lte": end.isoformat(),
