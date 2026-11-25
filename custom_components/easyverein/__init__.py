@@ -16,7 +16,7 @@ from homeassistant.util import dt as dt_util
 
 import aiohttp
 
-from .api import EasyVereinAuthError, EasyVereinClient
+from .api import EasyVereinAuthError, EasyVereinClient, EasyVereinForbidden
 from .const import DOMAIN, MODEL_ENDPOINTS, TOKEN_REFRESH_INTERVAL, UPDATE_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,24 +40,36 @@ class EasyVereinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         try:
             await self._refresh_token_if_due()
-            filters = {}
-            for f in await self.client.custom_filters():
-                endpoint = MODEL_ENDPOINTS[f["model"]]
-                filters[f["id"]] = {
-                    "name": f["name"],
-                    "count": await self.client.count(endpoint, custom_filter=f["id"]),
-                }
             return {
-                # shortcut: may include applicants (_isApplication); use a custom filter for exact numbers
-                "members": await self.client.count(
+                "members": await self._count_or_none(
                     "member", resignation_date__isnull="true"
                 ),
-                "filters": filters,
+                "filters": await self._filter_counts(),
             }
         except EasyVereinAuthError as err:
             raise ConfigEntryAuthFailed from err
         except aiohttp.ClientError as err:
             raise UpdateFailed(err) from err
+
+    async def _count_or_none(self, endpoint: str, **params: Any) -> int | None:
+        try:
+            return await self.client.count(endpoint, **params)
+        except EasyVereinForbidden:
+            return None  # the token's user lacks the read right for this module
+
+    async def _filter_counts(self) -> dict[int, dict[str, Any]]:
+        try:
+            filters = await self.client.custom_filters()
+        except EasyVereinForbidden:
+            return {}  # custom filters need a user with chairman rights
+        counts = {}
+        for f in filters:
+            count = await self._count_or_none(
+                MODEL_ENDPOINTS[f["model"]], custom_filter=f["id"]
+            )
+            if count is not None:
+                counts[f["id"]] = {"name": f["name"], "count": count}
+        return counts
 
     async def _refresh_token_if_due(self) -> None:
         now = dt_util.utcnow()

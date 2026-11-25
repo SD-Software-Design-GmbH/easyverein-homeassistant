@@ -3,18 +3,24 @@
     "step": {
       "user": {
         "title": "easyVerein verbinden",
-        "description": "API-Token aus easyVerein (Einstellungen, API). Das Token wird alle 30 Tage automatisch erneuert.",
-        "data": { "token": "API-Token" }
+        "description": "Den API-Schlüssel erzeugst du in easyVerein unter [Einstellungen, API](https://easyverein.com/app/settings/easyVereinApi/). Er hat die Rechte des Benutzers, mit dem du ihn erzeugst. Benötigt wird ein Benutzer mit Vorstandsrechten und Leserechten auf die Bereiche, die du anzeigen willst (Mitglieder, Adressen, Termine, Buchungen). Mehr dazu in der README.",
+        "data": {
+          "token": "API-Token"
+        }
       },
       "reauth_confirm": {
         "title": "Neues API-Token",
-        "data": { "token": "API-Token" }
+        "data": {
+          "token": "API-Token"
+        }
       }
     },
     "error": {
       "invalid_auth": "Token ungültig oder abgelaufen",
       "cannot_connect": "easyVerein nicht erreichbar"
     },
-    "abort": { "single_instance_allowed": "easyVerein ist bereits eingerichtet" }
+    "abort": {
+      "single_instance_allowed": "easyVerein ist bereits eingerichtet"
+    }
   }
 }

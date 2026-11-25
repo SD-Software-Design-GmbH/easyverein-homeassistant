@@ -70,6 +70,16 @@ class ClientTest(unittest.TestCase):
         with self.assertRaises(api.EasyVereinAuthError):
             run(c.count("member"))
 
+    def test_403_is_forbidden_not_auth_error(self):
+        c = api.EasyVereinClient(FakeSession({"booking": (403, {})}), "tok")
+        with self.assertRaises(api.EasyVereinForbidden):
+            run(c.count("booking"))
+
+    def test_403_on_refresh_means_expired_token(self):
+        c = api.EasyVereinClient(FakeSession({"refresh-token": (403, {})}), "tok")
+        with self.assertRaises(api.EasyVereinAuthError):
+            run(c.refresh_token())
+
     def test_custom_filters_paginates_and_skips_unsupported_models(self):
         s = FakeSession(
             {

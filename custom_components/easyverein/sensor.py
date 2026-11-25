@@ -38,7 +38,7 @@ class MembersSensor(_CountSensor):
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_members"
 
     @property
-    def native_value(self) -> int:
+    def native_value(self) -> int | None:
         return self.coordinator.data["members"]
 
 

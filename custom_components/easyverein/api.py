@@ -14,6 +14,10 @@ class EasyVereinAuthError(Exception):
     """Token rejected (invalid or expired)."""
 
 
+class EasyVereinForbidden(Exception):
+    """Token is valid, but its user may not read this endpoint."""
+
+
 class EasyVereinClient:
     def __init__(self, session: Any, token: str) -> None:
         self._session = session
@@ -25,14 +29,19 @@ class EasyVereinClient:
             params=params,
             headers={"Authorization": f"Bearer {self.token}"},
         ) as resp:
-            if resp.status in (401, 403):
+            if resp.status == 401:
                 raise EasyVereinAuthError
+            if resp.status == 403:
+                raise EasyVereinForbidden
             resp.raise_for_status()
             return await resp.json()
 
     async def refresh_token(self) -> str:
         """Ask for a fresh token. Returns the same one while the current is young enough."""
-        data = await self._get("refresh-token")
+        try:
+            data = await self._get("refresh-token")
+        except EasyVereinForbidden as err:  # the server answers 403 for expired tokens here
+            raise EasyVereinAuthError from err
         self.token = data["Bearer"]
         return self.token
 

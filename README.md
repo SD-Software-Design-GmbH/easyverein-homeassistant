@@ -14,9 +14,23 @@ Ein Kalender "Termine" mit allen Terminen aus easyVerein.
 
 ## Installation
 
-Über HACS als benutzerdefiniertes Repository (Typ Integration) hinzufügen, danach unter Geräte & Dienste die Integration easyVerein anlegen und einen API-Token eintragen. Am besten legst du dafür einen eigenen API-Benutzer mit reinen Leserechten an.
+Über HACS als benutzerdefiniertes Repository (Typ Integration) hinzufügen, danach unter Geräte & Dienste die Integration easyVerein anlegen und einen API-Schlüssel eintragen.
 
-Der Token ist 30 Tage gültig. Die Integration erneuert ihn selbst und speichert den neuen Wert.
+## API-Schlüssel und Berechtigungen
+
+Den Schlüssel erzeugst du in easyVerein unter [Einstellungen, API](https://easyverein.com/app/settings/easyVereinApi/). Er hat genau die Rechte des Benutzers, als der du beim Erzeugen angemeldet bist. Am besten legst du dafür einen eigenen Benutzer an, der nur lesen darf.
+
+Der Benutzer braucht Vorstandsrechte, weil die gespeicherten Filter nur für Vorstände abrufbar sind. Dazu kommen Leserechte (Schreiben wird nie benötigt) auf die Bereiche, die du anzeigen willst:
+
+- Mitglieder: Sensor "Mitglieder" und Filter auf Mitglieder
+- Adressen: Filter auf Kontakte
+- Termine: Kalender und Filter auf Termine
+- Buchungen: Filter auf Buchungen und Rechnungen
+- Aufgaben und Inventar: Filter auf Aufgaben bzw. Inventar
+
+Fehlt das Recht für einen Bereich, fehlen nur die zugehörigen Sensoren. Die Integration läuft normal weiter.
+
+Der Schlüssel ist 30 Tage gültig. Die Integration erneuert ihn selbst und speichert den neuen Wert.
 
 ## Stand
 

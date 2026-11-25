@@ -3,18 +3,24 @@
     "step": {
       "user": {
         "title": "Connect easyVerein",
-        "description": "API token from easyVerein (Settings, API). It is renewed automatically every 30 days.",
-        "data": { "token": "API token" }
+        "description": "Create the API key in easyVerein under [Settings, API](https://easyverein.com/app/settings/easyVereinApi/). It has the rights of the user you create it with. You need a user with chairman rights and read access to the areas you want to show (members, addresses, events, bookings). See the README for details.",
+        "data": {
+          "token": "API token"
+        }
       },
       "reauth_confirm": {
         "title": "New API token",
-        "data": { "token": "API token" }
+        "data": {
+          "token": "API token"
+        }
       }
     },
     "error": {
       "invalid_auth": "Token invalid or expired",
       "cannot_connect": "Cannot reach easyVerein"
     },
-    "abort": { "single_instance_allowed": "easyVerein is already set up" }
+    "abort": {
+      "single_instance_allowed": "easyVerein is already set up"
+    }
   }
 }
