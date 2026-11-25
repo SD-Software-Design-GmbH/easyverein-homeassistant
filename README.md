@@ -1,35 +1,23 @@
 # easyVerein für Home Assistant
 
-Custom Integration (HACS), die ein paar Kennzahlen aus [easyVerein](https://easyverein.com) als Entitäten bereitstellt.
-Läuft gegen die API `v3.0`, Polling alle 30 Minuten.
+Holt ein paar Zahlen aus easyVerein und stellt sie in Home Assistant als Sensoren bereit. Dazu gibt es einen Kalender mit den Terminen des Vereins.
+
+Die Werte werden alle 30 Minuten über die API (v3.0) abgefragt, Echtzeit ist nicht gedacht.
 
 ## Entitäten
 
-| Entität | Quelle |
-|---|---|
-| `sensor` **Mitglieder** | Anzahl Einträge im `member`-Endpunkt ohne Austrittsdatum (kann Anträge enthalten) |
-| `sensor` pro **Custom Filter** | Anzahl Treffer des in easyVerein gespeicherten Filters, z. B. „Offene Mitgliedsanträge“ |
-| `calendar` **Termine** | Alle Termine aus easyVerein (Datumsbereich wird bei Bedarf abgefragt) |
+Ein Sensor "Mitglieder" mit der Anzahl der Mitglieder ohne Austrittsdatum.
 
-Unterstützte Filter-Modelle: Mitglieder, Kontakte, Buchungen, Rechnungen, Termine, Inventar, Aufgaben.
-Neue Filter in easyVerein erscheinen nach einem Neuladen der Integration.
+Pro gespeichertem Filter aus easyVerein (Custom Filter) ein weiterer Sensor mit der Trefferzahl. So lässt sich zum Beispiel "Offene Mitgliedsanträge" anzeigen: Filter in easyVerein anlegen, fertig. Unterstützt sind Filter auf Mitglieder, Kontakte, Buchungen, Rechnungen, Termine, Inventar und Aufgaben. Ein Filter, der erst nach der Einrichtung angelegt wird, taucht nach einem Neuladen der Integration auf.
+
+Ein Kalender "Termine" mit allen Terminen aus easyVerein.
 
 ## Installation
 
-1. HACS → Benutzerdefinierte Repositories → dieses Repo als *Integration* hinzufügen.
-2. Integration „easyVerein“ hinzufügen und den API-Token eintragen.
+Über HACS als benutzerdefiniertes Repository (Typ Integration) hinzufügen, danach unter Geräte & Dienste die Integration easyVerein anlegen und einen API-Token eintragen. Am besten legst du dafür einen eigenen API-Benutzer mit reinen Leserechten an.
 
-Der Token läuft nach 30 Tagen ab und wird von der Integration täglich geprüft und bei Bedarf automatisch erneuert.
-Empfehlung: einen eigenen API-Benutzer mit Leserechten verwenden.
+Der Token ist 30 Tage gültig. Die Integration erneuert ihn selbst und speichert den neuen Wert.
 
-## Entwicklung
+## Stand
 
-```bash
-python -m unittest discover -s tests   # API-Client, ohne Home Assistant
-```
-
-## Bekannte Lücken (Prototyp)
-
-- Kalender-Mapping und Config-Flow sind nicht gegen eine echte Home-Assistant-Instanz getestet.
-- Kalender-Entität zeigt keinen „nächsten Termin“ als Zustand.
-- Der Sensor „Mitglieder“ filtert nur nach Austrittsdatum.
+Das ist ein Prototyp. Der API-Client hat Tests (`python -m unittest discover -s tests`), Config-Flow und Kalender sind noch nicht in einer laufenden Home-Assistant-Instanz ausprobiert. Der Kalender zeigt außerdem noch keinen "nächsten Termin" als Zustand, und "Mitglieder" kann Anträge mitzählen.

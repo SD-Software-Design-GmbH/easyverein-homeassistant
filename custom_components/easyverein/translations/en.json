@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect easyVerein",
-        "description": "API token from easyVerein (Settings → API). It is renewed automatically every 30 days.",
+        "description": "API token from easyVerein (Settings, API). It is renewed automatically every 30 days.",
         "data": { "token": "API token" }
       },
       "reauth_confirm": {
