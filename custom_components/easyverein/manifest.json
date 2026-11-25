@@ -1,7 +1,7 @@
 {
   "domain": "easyverein",
   "name": "easyVerein",
-  "codeowners": [],
+  "codeowners": ["@dKemen"],
   "config_flow": true,
   "documentation": "https://github.com/SD-Software-Design-GmbH/easyverein-homeassistant",
   "integration_type": "service",

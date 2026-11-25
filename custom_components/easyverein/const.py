@@ -5,7 +5,9 @@ from datetime import timedelta
 DOMAIN = "easyverein"
 BASE_URL = "https://easyverein.com/api/v3.0/"
 
-UPDATE_INTERVAL = timedelta(minutes=30)
+CONF_SCAN_INTERVAL = "scan_interval"  # minutes
+CONF_EXCLUDED_FILTERS = "excluded_filters"  # custom filter ids (as str) without sensor
+DEFAULT_SCAN_INTERVAL = 30
 # Tokens expire after 30 days; the server only rotates them in the second half of their lifetime
 # and otherwise returns the same key, so refreshing daily is safe.
 TOKEN_REFRESH_INTERVAL = timedelta(days=1)

@@ -28,11 +28,35 @@
     "sensor": {
       "members": {
         "name": "Members"
+      },
+      "applications": {
+        "name": "Open membership applications"
+      },
+      "resignations": {
+        "name": "Resignation notices"
+      },
+      "new_members": {
+        "name": "New members (30 days)"
+      },
+      "next_event": {
+        "name": "Next event"
       }
     },
     "calendar": {
       "events": {
         "name": "Events"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "easyVerein options",
+        "description": "Every saved filter from easyVerein gets a sensor. You can hide individual ones here.",
+        "data": {
+          "scan_interval": "Update interval (minutes)",
+          "excluded_filters": "Filters without sensor"
+        }
       }
     }
   }

@@ -1,4 +1,4 @@
-"""Calendar entity: all easyVerein events, fetched on demand for the requested window."""
+"""Calendar entities: all events, plus one per easyVerein calendar."""
 
 from __future__ import annotations
 
@@ -7,10 +7,12 @@ from datetime import datetime, timedelta
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .coordinator import EasyVereinConfigEntry
-from .entity import device_info
+from .api import next_events
+from .coordinator import EasyVereinConfigEntry, EasyVereinCoordinator
+from .entity import device_info, sync_dynamic_entities
 
 
 async def async_setup_entry(
@@ -18,30 +20,58 @@ async def async_setup_entry(
     entry: EasyVereinConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    async_add_entities([EasyVereinCalendar(entry)])
+    coordinator = entry.runtime_data
+    async_add_entities([EasyVereinCalendar(coordinator, None)])
+    sync_dynamic_entities(
+        hass,
+        entry,
+        coordinator,
+        async_add_entities,
+        domain="calendar",
+        prefix="calendar_",
+        current_ids=lambda data: set(data.calendars),
+        factory=lambda calendar_id: EasyVereinCalendar(coordinator, calendar_id),
+    )
 
 
-class EasyVereinCalendar(CalendarEntity):
+class EasyVereinCalendar(CoordinatorEntity[EasyVereinCoordinator], CalendarEntity):
+    """`calendar_id` None means all events, including those without a calendar."""
+
     _attr_has_entity_name = True
-    _attr_translation_key = "events"
 
-    def __init__(self, entry: EasyVereinConfigEntry) -> None:
-        self._client = entry.runtime_data.client
-        self._attr_unique_id = f"{entry.entry_id}_calendar"
+    def __init__(
+        self, coordinator: EasyVereinCoordinator, calendar_id: int | None
+    ) -> None:
+        super().__init__(coordinator)
+        entry = coordinator.config_entry
+        self._calendar_id = calendar_id
+        if calendar_id is None:
+            self._attr_translation_key = "events"
+            self._attr_unique_id = f"{entry.entry_id}_calendar"
+        else:
+            self._attr_unique_id = f"{entry.entry_id}_calendar_{calendar_id}"
         self._attr_device_info = device_info(entry)
 
-    # shortcut: no "next event" state (always off); add via a cached upcoming-events fetch if wanted
+    @property
+    def name(self) -> str | None:
+        if self._calendar_id is None:
+            return super().name
+        return self.coordinator.data.calendars.get(self._calendar_id)
+
     @property
     def event(self) -> CalendarEvent | None:
-        return None
+        """Current or next event, from the last poll."""
+        upcoming = self.coordinator.data.upcoming.get(self._calendar_id, [])
+        events = next_events(upcoming, dt_util.now())
+        return _to_calendar_event(events[0]) if events else None
 
     async def async_get_events(
         self, hass: HomeAssistant, start_date: datetime, end_date: datetime
     ) -> list[CalendarEvent]:
-        return [
-            _to_calendar_event(e)
-            for e in await self._client.events(start_date, end_date)
-        ]
+        events = await self.coordinator.client.events(
+            start_date, end_date, self._calendar_id
+        )
+        return [_to_calendar_event(e) for e in events]
 
 
 def _to_calendar_event(item: dict) -> CalendarEvent:

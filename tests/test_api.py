@@ -1,23 +1,10 @@
-"""Client logic against a fake session. Run: python -m unittest discover -s tests"""
+"""API client and pure helpers, against a fake session."""
 
-import asyncio
-import importlib.util
-import pathlib
-import sys
-import types
-import unittest
+from datetime import UTC, date, datetime, timedelta
 
-# Load api.py/const.py without importing the package (which needs Home Assistant).
-base = pathlib.Path(__file__).parent.parent / "custom_components" / "easyverein"
-pkg = types.ModuleType("ev")
-pkg.__path__ = [str(base)]
-sys.modules["ev"] = pkg
-for name in ("const", "api"):
-    spec = importlib.util.spec_from_file_location(f"ev.{name}", base / f"{name}.py")
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[f"ev.{name}"] = mod
-    spec.loader.exec_module(mod)
-api = sys.modules["ev.api"]
+import pytest
+
+from custom_components.easyverein import api
 
 
 class FakeResponse:
@@ -50,67 +37,104 @@ class FakeSession:
         return FakeResponse(*self.routes[key])
 
 
-def run(coro):
-    return asyncio.run(coro)
+def client(routes, token="tok"):
+    return api.EasyVereinClient(FakeSession(routes), token)
 
 
-class ClientTest(unittest.TestCase):
-    def test_count_asks_for_one_row_and_returns_count(self):
-        s = FakeSession({"member": (200, {"count": 42, "results": []})})
-        c = api.EasyVereinClient(s, "tok")
-        self.assertEqual(run(c.count("member", custom_filter=7)), 42)
-        _, params, headers = s.calls[0]
-        self.assertEqual(params, {"custom_filter": 7, "limit": 1, "show_count": "true"})
-        self.assertEqual(headers["Authorization"], "Bearer tok")
-
-    def test_auth_error(self):
-        c = api.EasyVereinClient(FakeSession({"member": (401, {})}), "tok")
-        with self.assertRaises(api.EasyVereinAuthError):
-            run(c.count("member"))
-
-    def test_403_is_forbidden_not_auth_error(self):
-        c = api.EasyVereinClient(FakeSession({"booking": (403, {})}), "tok")
-        with self.assertRaises(api.EasyVereinForbidden):
-            run(c.count("booking"))
-
-    def test_403_on_refresh_means_expired_token(self):
-        c = api.EasyVereinClient(FakeSession({"refresh-token": (403, {})}), "tok")
-        with self.assertRaises(api.EasyVereinAuthError):
-            run(c.refresh_token())
-
-    def test_custom_filters_paginates_and_skips_unsupported_models(self):
-        s = FakeSession(
-            {
-                "custom-filter": (
-                    200,
-                    {
-                        "next": "https://x/page2",
-                        "results": [
-                            {"id": 1, "name": "Anträge", "model": "userFilter"},
-                            {"id": 2, "name": "Logs", "model": "loginLogsFilter"},
-                        ],
-                    },
-                ),
-                "page2": (
-                    200,
-                    {
-                        "next": None,
-                        "results": [
-                            {"id": 3, "name": "Offen", "model": "invoiceFilter"}
-                        ],
-                    },
-                ),
-            }
-        )
-        got = run(api.EasyVereinClient(s, "tok").custom_filters())
-        self.assertEqual([f["id"] for f in got], [1, 3])
-
-    def test_refresh_token_replaces_token(self):
-        s = FakeSession({"refresh-token": (200, {"Bearer": "new"})})
-        c = api.EasyVereinClient(s, "old")
-        self.assertEqual(run(c.refresh_token()), "new")
-        self.assertEqual(c.token, "new")
+async def test_count_asks_for_one_row_and_returns_count():
+    c = client({"member": (200, {"count": 42, "results": []})})
+    assert await c.count("member", custom_filter=7) == 42
+    _, params, headers = c._session.calls[0]
+    assert params == {"custom_filter": 7, "limit": 1, "show_count": "true"}
+    assert headers["Authorization"] == "Bearer tok"
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.mark.parametrize(
+    ("status", "error"),
+    [
+        (401, api.EasyVereinAuthError),
+        (403, api.EasyVereinForbidden),
+        (400, api.EasyVereinBadRequest),
+    ],
+)
+async def test_status_codes_map_to_errors(status, error):
+    with pytest.raises(error):
+        await client({"member": (status, {})}).count("member")
+
+
+async def test_403_on_refresh_means_expired_token():
+    with pytest.raises(api.EasyVereinAuthError):
+        await client({"refresh-token": (403, {})}).refresh_token()
+
+
+async def test_refresh_token_replaces_token():
+    c = client({"refresh-token": (200, {"Bearer": "new"})}, token="old")
+    assert await c.refresh_token() == "new"
+    assert c.token == "new"
+
+
+async def test_custom_filters_paginates_and_skips_unsupported_models():
+    c = client(
+        {
+            "custom-filter": (
+                200,
+                {
+                    "next": "https://x/page2",
+                    "results": [
+                        {"id": 1, "name": "Anträge", "model": "userFilter"},
+                        {"id": 2, "name": "Logs", "model": "loginLogsFilter"},
+                    ],
+                },
+            ),
+            "page2": (
+                200,
+                {
+                    "next": None,
+                    "results": [{"id": 3, "name": "Offen", "model": "invoiceFilter"}],
+                },
+            ),
+        }
+    )
+    assert [f["id"] for f in await c.custom_filters()] == [1, 3]
+
+
+async def test_upcoming_events_sorted_by_start_and_filtered_by_calendar():
+    now = datetime(2026, 5, 1, tzinfo=UTC)
+    c = client({"event": (200, {"results": [{"id": 1}]})})
+    assert await c.upcoming_events(now, calendar=5, limit=3) == [{"id": 1}]
+    _, params, _ = c._session.calls[0]
+    assert params == {
+        "end__gte": now.isoformat(),
+        "ordering": "start",
+        "limit": 3,
+        "calendar": 5,
+    }
+
+
+def test_member_counts_separates_applicants_from_members():
+    counts = api.member_counts(date(2026, 5, 31))
+    assert counts["members"] == {"is_application": "false", "has_left": "false"}
+    assert counts["applications"] == {"is_application": "true"}
+    assert counts["resignations"]["resignation_notice_date__isnull"] == "false"
+    assert counts["new_members"]["join_date__gte"] == "2026-05-01"
+
+
+def test_next_events_skips_ended_sorts_and_accepts_naive_times():
+    now = datetime(2026, 5, 1, 12, tzinfo=UTC)
+    hour = timedelta(hours=1)
+
+    def event(name, start, end):
+        return {"name": name, "start": start.isoformat(), "end": end.isoformat()}
+
+    events = [
+        event("vorbei", now - 3 * hour, now - hour),
+        event("später", now + 5 * hour, now + 6 * hour),
+        event("läuft", now - hour, now + hour),
+        {"name": "naiv", "start": "2026-05-01T20:00:00", "end": "2026-05-01T21:00:00"},
+    ]
+    assert [e["name"] for e in api.next_events(events, now, limit=5)] == [
+        "läuft",
+        "später",
+        "naiv",
+    ]
+    assert api.next_events([], now) == []

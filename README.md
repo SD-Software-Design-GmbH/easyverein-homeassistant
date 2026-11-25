@@ -5,19 +5,31 @@ Integration für die Vereinssoftware [easyVerein](https://easyverein.com). Zeigt
 [![Repository in HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=SD-Software-Design-GmbH&repository=easyverein-homeassistant&category=integration)
 [![Integration einrichten](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=easyverein)
 
-Die Werte werden alle 30 Minuten über die API (v3.0) abgefragt, Echtzeit ist nicht gedacht.
+Die Werte werden über die API (v3.0) abgefragt, standardmäßig alle 30 Minuten. Echtzeit ist nicht gedacht.
 
 ## Entitäten
 
-Ein Sensor "Mitglieder" mit der Anzahl der Mitglieder ohne Austrittsdatum.
+Sensoren:
 
-Pro gespeichertem Filter aus easyVerein (Custom Filter) ein weiterer Sensor mit der Trefferzahl. So lässt sich zum Beispiel "Offene Mitgliedsanträge" anzeigen: Filter in easyVerein anlegen, fertig. Unterstützt sind Filter auf Mitglieder, Kontakte, Buchungen, Rechnungen, Termine, Inventar und Aufgaben. Ein Filter, der erst nach der Einrichtung angelegt wird, taucht nach einem Neuladen der Integration auf.
+- Mitglieder (ohne Ausgetretene und ohne Anträge)
+- Offene Mitgliedsanträge
+- Kündigungen (Kündigung liegt vor, Mitglied ist noch nicht ausgetreten)
+- Neue Mitglieder der letzten 30 Tage
+- Nächster Termin (Zeitstempel, mit Name und Ort als Attribute)
+- Ein Sensor pro gespeichertem Filter aus easyVerein (Custom Filter) mit der Trefferzahl. Unterstützt sind Filter auf Mitglieder, Kontakte, Buchungen, Rechnungen, Termine, Inventar und Aufgaben. Neue Filter erscheinen beim nächsten Abruf, gelöschte verschwinden.
 
-Ein Kalender "Termine" mit allen Terminen aus easyVerein.
+Kalender:
+
+- "Termine" mit allen Terminen
+- Je ein Kalender pro easyVerein-Kalender
+
+Der Zustand eines Kalenders ist der laufende oder nächste Termin (Stand des letzten Abrufs). Damit lassen sich Automationen auf Terminbeginn bauen.
 
 ## Installation
 
 Über HACS als benutzerdefiniertes Repository (Typ Integration) hinzufügen, danach unter Geräte & Dienste die Integration easyVerein anlegen und einen API-Schlüssel eintragen.
+
+Unter Optionen der Integration lassen sich das Abfrageintervall ändern und einzelne Filter ausblenden.
 
 ## API-Schlüssel und Berechtigungen
 
@@ -25,9 +37,10 @@ Den Schlüssel erzeugst du in easyVerein unter [Einstellungen, API](https://easy
 
 Der Benutzer braucht Vorstandsrechte, weil die gespeicherten Filter nur für Vorstände abrufbar sind. Dazu kommen Leserechte (Schreiben wird nie benötigt) auf die Bereiche, die du anzeigen willst:
 
-- Mitglieder: Sensor "Mitglieder" und Filter auf Mitglieder
+- Mitglieder: die Zähler und Filter auf Mitglieder
 - Adressen: Filter auf Kontakte
-- Termine: Kalender und Filter auf Termine
+- Termine: Kalender, Nächster Termin und Filter auf Termine
+- Mitgliederbereich: die einzelnen easyVerein-Kalender
 - Buchungen: Filter auf Buchungen und Rechnungen
 - Aufgaben und Inventar: Filter auf Aufgaben bzw. Inventar
 
@@ -35,6 +48,15 @@ Fehlt das Recht für einen Bereich, fehlen nur die zugehörigen Sensoren. Die In
 
 Der Schlüssel ist 30 Tage gültig. Die Integration erneuert ihn selbst und speichert den neuen Wert.
 
-## Stand
+## Entwicklung
 
-Das ist ein Prototyp. Der API-Client hat Tests (`python -m unittest discover -s tests`), Config-Flow und Kalender sind noch nicht in einer laufenden Home-Assistant-Instanz ausprobiert. Der Kalender zeigt außerdem noch keinen "nächsten Termin" als Zustand, und "Mitglieder" kann Anträge mitzählen.
+```bash
+pip install -r requirements_test.txt
+pytest
+```
+
+Die Tests laufen gegen eine simulierte API.
+
+## Lizenz
+
+Apache License 2.0, siehe [LICENSE](LICENSE).
