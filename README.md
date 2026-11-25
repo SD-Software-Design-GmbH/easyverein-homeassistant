@@ -1,6 +1,6 @@
 # easyVerein für Home Assistant
 
-Home-Assistant-Integration für [easyVerein](https://easyverein.com), die Vereinssoftware für Vereine und Verbände (Mitgliederverwaltung, Buchhaltung, Termine, Beitragseinzug). Sie holt ein paar Kennzahlen aus der Vereinsverwaltung und stellt sie in Home Assistant als Sensoren bereit. Dazu gibt es einen Kalender mit den Terminen des Vereins.
+Integration für [easyVerein](https://easyverein.com), eine Vereinssoftware mit Mitgliederverwaltung und Buchhaltung. Sie zeigt ein paar Kennzahlen aus easyVerein als Sensoren in Home Assistant an, außerdem die Termine des Vereins als Kalender.
 
 Die Werte werden alle 30 Minuten über die API (v3.0) abgefragt, Echtzeit ist nicht gedacht.
 
